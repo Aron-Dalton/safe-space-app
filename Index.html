@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Safe Space</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f8; /* Calming light blue-grey */
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h2 { text-align: center; color: #2c3e50; }
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .btn-speaker { background-color: #e2e8f0; color: #4a5568; }
+        .btn-speaker.active { background-color: #4299e1; color: white; }
+        .btn-pause { background-color: #fc8181; color: white; }
+        
+        #pause-screen {
+            display: none;
+            text-align: center;
+            padding: 40px 20px;
+            background-color: #ebf8ff;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .input-area { margin-bottom: 20px; }
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            resize: vertical;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .btn-submit { background-color: #48bb78; color: white; flex-grow: 1; }
+        .btn-rephrase { background-color: #805ad5; color: white; flex-grow: 1; }
+        
+        .chat-log {
+            border-top: 2px solid #edf2f7;
+            padding-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            background-color: #f7fafc;
+        }
+        .speaker-label { font-weight: bold; font-size: 0.9em; margin-bottom: 5px; color: #718096; }
+        .rephrased-text { color: #2b6cb0; font-style: italic; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>The Safe Space</h2>
+    
+    <div class="controls">
+        <button id="btn-spk1" class="btn-speaker active" onclick="setSpeaker(1)">Speaker 1</button>
+        <button id="btn-pause" class="btn-pause" onclick="triggerPause()">PAUSE</button>
+        <button id="btn-spk2" class="btn-speaker" onclick="setSpeaker(2)">Speaker 2</button>
+    </div>
+
+    <div id="pause-screen">
+        <h3>System Paused</h3>
+        <p>Take a deep breath. Drink some water. Notice 3 things in the room.</p>
+        <p id="timerText">Resuming in 10 seconds...</p>
+    </div>
+
+    <div id="active-area" class="input-area">
+        <p id="turn-indicator"><strong>Speaker 1's Turn</strong></p>
+        <textarea id="user-input" placeholder="Type what's on your mind..."></textarea>
+        
+        <div class="action-buttons">
+            <button class="btn-submit" onclick="sendMessage('raw')">Send as is</button>
+            <button class="btn-rephrase" onclick="sendMessage('rephrase')">Rephrase so I can hear</button>
+        </div>
+    </div>
+
+    <div class="chat-log" id="chat-log">
+        </div>
+</div>
+
+<script>
+    let currentSpeaker = 1;
+    let isPaused = false;
+
+    // IMPORTANT: In a real app, do NOT put your API key in the frontend HTML. 
+    // This should eventually be moved to a backend (like Node.js) for security.
+    const GEMINI_API_KEY = 'YOUR_API_KEY_HERE'; 
+
+    function setSpeaker(speakerNum) {
+        if (isPaused) return;
+        currentSpeaker = speakerNum;
+        
+        document.getElementById('btn-spk1').classList.remove('active');
+        document.getElementById('btn-spk2').classList.remove('active');
+        document.getElementById(`btn-spk${speakerNum}`).classList.add('active');
+        
+        document.getElementById('turn-indicator').innerHTML = `<strong>Speaker ${speakerNum}'s Turn</strong>`;
+        document.getElementById('user-input').value = '';
+    }
+
+    function triggerPause() {
+        if (isPaused) return;
+        isPaused = true;
+        
+        document.getElementById('active-area').style.display = 'none';
+        document.getElementById('pause-screen').style.display = 'block';
+        
+        let secondsLeft = 10; // Set to 10 seconds for testing. Change to 1200 for 20 minutes.
+        const timerInterval = setInterval(() => {
+            secondsLeft--;
+            document.getElementById('timerText').innerText = `Resuming in ${secondsLeft} seconds...`;
+            
+            if (secondsLeft <= 0) {
+                clearInterval(timerInterval);
+                isPaused = false;
+                document.getElementById('active-area').style.display = 'block';
+                document.getElementById('pause-screen').style.display = 'none';
+                document.getElementById('timerText').innerText = `Resuming...`;
+            }
+        }, 1000);
+    }
+
+    async function sendMessage(type) {
+        const inputField = document.getElementById('user-input');
+        const rawText = inputField.value.trim();
+        
+        if (!rawText) return;
+
+        const chatLog = document.getElementById('chat-log');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message';
+        
+        let contentHtml = `<div class="speaker-label">Speaker ${currentSpeaker}</div>`;
+        contentHtml += `<div>${rawText}</div>`;
+
+        // If rephrase is clicked, we call the Gemini API
+        if (type === 'rephrase') {
+            contentHtml += `<div class="rephrased-text">⏳ Translating to healthy communication...</div>`;
+            messageDiv.innerHTML = contentHtml;
+            chatLog.prepend(messageDiv);
+            inputField.value = '';
+
+            // Simulate the Gemini API call for the prototype
+            const rephrasedText = await callGeminiAPI(rawText);
+            
+            // Update the message with the API result
+            messageDiv.innerHTML = `
+                <div class="speaker-label">Speaker ${currentSpeaker}</div>
+                <div style="text-decoration: line-through; color: #a0aec0; font-size: 0.85em;">${rawText}</div>
+                <div class="rephrased-text"><strong>Translated:</strong> "${rephrasedText}"</div>
+            `;
+        } else {
+            messageDiv.innerHTML = contentHtml;
+            chatLog.prepend(messageDiv);
+            inputField.value = '';
+        }
+    }
+
+    // This is where you connect to Gemini
+    async function callGeminiAPI(text) {
+        // NOTE: To make this work live, you would use fetch() here to call the 
+        // Google Gemini REST API endpoints using your GEMINI_API_KEY.
+        
+        // For right now, I am acting as the mock-API to show you how it looks:
+        return new Promise(resolve => {
+            setTimeout(() => {
+                resolve("When I hear this, I feel overwhelmed because my need for mutual understanding isn't being met. Could we discuss this calmly?");
+            }, 1500); // 1.5 second delay to simulate API processing
+        });
+    }
+</script>
+
+</body>
+</html>
