@@ -6,15 +6,27 @@
     <title>The Safe Space</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f4f8; color: #333; max-width: 700px; margin: 0 auto; padding: 20px; }
-        .container { background-color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .container { background-color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; flex-direction: column;}
         h2 { text-align: center; color: #2c3e50; margin-bottom: 5px; }
         
+        .top-settings { display: flex; gap: 10px; margin-bottom: 15px; justify-content: center; }
+        input[type="password"], select { padding: 8px; border-radius: 6px; border: 1px solid #cbd5e0; font-family: inherit; }
+        select { background-color: #edf2f7; color: #2d3748; font-weight: bold; cursor: pointer; }
+
+        /* Chat Log Moved to Top */
+        .chat-log { border: 2px solid #edf2f7; border-radius: 8px; padding: 15px; height: 250px; overflow-y: auto; margin-bottom: 20px; background-color: #ffffff; }
+        .message { margin-bottom: 15px; padding: 12px; border-radius: 8px; background-color: #f7fafc; border-left: 4px solid #4299e1; }
+        .msg-spk2 { border-left-color: #ed8936; }
+        .speaker-label { font-weight: bold; font-size: 0.85em; margin-bottom: 5px; color: #718096; }
+        .rephrased-text { color: #2b6cb0; font-style: italic; margin-top: 8px; padding-top: 8px; border-top: 1px dashed #cbd5e0;}
+        .nvc-tags { font-size: 0.8em; color: #718096; margin-bottom: 5px; }
+
         .controls { display: flex; justify-content: space-between; margin-bottom: 15px; }
         button { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: background-color 0.2s; }
         .btn-speaker { background-color: #e2e8f0; color: #4a5568; flex: 1; margin: 0 5px; }
         .btn-speaker.active { background-color: #4299e1; color: white; }
         .btn-pause { background-color: #fc8181; color: white; }
-        .btn-export { background-color: #a0aec0; color: white; margin-bottom: 15px; width: 100%; }
+        .btn-export { background-color: #a0aec0; color: white; margin-top: 15px; width: 100%; }
 
         /* Feelings and Needs Section */
         .chip-container { margin-bottom: 15px; padding: 10px; background-color: #f7fafc; border-radius: 8px; border: 1px solid #e2e8f0; }
@@ -23,19 +35,12 @@
         .chip.active-feeling { background-color: #fed7d7; border-color: #fc8181; color: #c53030; }
         .chip.active-need { background-color: #c6f6d5; border-color: #68d391; color: #276749; }
 
-        .input-area { margin-bottom: 20px; }
-        textarea { width: 100%; height: 80px; padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px; resize: vertical; font-family: inherit; margin-bottom: 10px;}
+        .input-area { margin-bottom: 10px; }
+        textarea { width: 100%; height: 80px; padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px; resize: vertical; font-family: inherit; margin-bottom: 10px; box-sizing: border-box;}
         .action-buttons { display: flex; gap: 10px; }
         .btn-submit { background-color: #48bb78; color: white; flex: 1; }
         .btn-rephrase { background-color: #805ad5; color: white; flex: 2; }
         
-        .chat-log { border-top: 2px solid #edf2f7; padding-top: 20px; max-height: 400px; overflow-y: auto; }
-        .message { margin-bottom: 15px; padding: 12px; border-radius: 8px; background-color: #f7fafc; border-left: 4px solid #4299e1; }
-        .msg-spk2 { border-left-color: #ed8936; }
-        .speaker-label { font-weight: bold; font-size: 0.85em; margin-bottom: 5px; color: #718096; }
-        .rephrased-text { color: #2b6cb0; font-style: italic; margin-top: 8px; padding-top: 8px; border-top: 1px dashed #cbd5e0;}
-        .nvc-tags { font-size: 0.8em; color: #718096; margin-bottom: 5px; }
-
         #pause-screen { display: none; text-align: center; padding: 40px 20px; background-color: #ebf8ff; border-radius: 8px; margin-bottom: 20px; }
     </style>
 </head>
@@ -43,9 +48,17 @@
 
 <div class="container">
     <h2>The Safe Space</h2>
-    <div style="text-align: center; margin-bottom: 15px;">
-        <input type="password" id="api-key-input" placeholder="Paste Gemini API Key here" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; width: 80%;">
+    
+    <div class="top-settings">
+        <input type="password" id="api-key-input" placeholder="Paste Gemini API Key here" style="flex: 1;">
+        <select id="advisor-mode">
+            <option value="nvc">Mode: Emotional Mediator</option>
+            <option value="finance">Mode: Financial Planner</option>
+            <option value="legal">Mode: Legal/Logistics Guide</option>
+        </select>
     </div>
+
+    <div class="chat-log" id="chat-log"></div>
     
     <div class="controls">
         <button id="btn-spk1" class="btn-speaker active" onclick="setSpeaker(1)">Speaker 1</button>
@@ -60,7 +73,7 @@
     </div>
 
     <div id="active-area" class="input-area">
-        <p id="turn-indicator" style="text-align:center; color:#2c3e50;"><strong>Speaker 1's Turn</strong></p>
+        <p id="turn-indicator" style="text-align:center; color:#2c3e50; margin-top:0;"><strong>Speaker 1's Turn</strong></p>
         
         <div class="chip-container">
             <div class="chip-title">I am feeling...</div>
@@ -70,14 +83,12 @@
                 <span class="chip" onclick="toggleChip(this, 'feeling')">Overwhelmed</span>
                 <span class="chip" onclick="toggleChip(this, 'feeling')">Angry</span>
                 <span class="chip" onclick="toggleChip(this, 'feeling')">Lonely</span>
-                <span class="chip" onclick="toggleChip(this, 'feeling')">Exhausted</span>
             </div>
             <div class="chip-title" style="margin-top: 10px;">Because I need...</div>
             <div id="needs-list">
                 <span class="chip" onclick="toggleChip(this, 'need')">Respect</span>
                 <span class="chip" onclick="toggleChip(this, 'need')">Safety</span>
                 <span class="chip" onclick="toggleChip(this, 'need')">Partnership</span>
-                <span class="chip" onclick="toggleChip(this, 'need')">To Be Heard</span>
                 <span class="chip" onclick="toggleChip(this, 'need')">Clarity</span>
                 <span class="chip" onclick="toggleChip(this, 'need')">Reassurance</span>
             </div>
@@ -87,13 +98,11 @@
         
         <div class="action-buttons">
             <button class="btn-submit" onclick="sendMessage('raw')">Send as is</button>
-            <button class="btn-rephrase" onclick="sendMessage('rephrase')">Rephrase safely</button>
+            <button class="btn-rephrase" onclick="sendMessage('rephrase')">Process with Expert</button>
         </div>
     </div>
 
     <button class="btn-export" onclick="exportChat()">Save/Export Conversation Log</button>
-
-    <div class="chat-log" id="chat-log"></div>
 </div>
 
 <script>
@@ -101,7 +110,13 @@
     let isPaused = false;
     let selectedFeelings = [];
     let selectedNeeds = [];
-    let conversationHistory = []; // Array to store memory
+    let conversationHistory = []; 
+
+    const PROMPTS = {
+        nvc: "You are an expert in Nonviolent Communication (NVC) and couples counseling. Translate the user's raw input into a healthy, non-defensive NVC format. Incorporate the feelings and needs they selected. Speak strictly in the first person ('I feel...'). Do not give advice or scold. Just make it safe to hear.",
+        finance: "You are an expert financial advisor and couples mediator. The couple is discussing practical money matters. Review their context and provide a neutral, mathematically sound, and equitable response or framework. Keep the tone collaborative ('we'/'our'). Do not take sides. Help them build a shared financial solution.",
+        legal: "You are an expert in family planning, mediation, and structural logistics. Provide neutral, factual guidance on household logistics, agreements, or legal frameworks. Focus on transparency and fairness. Note that this is informational, not legally binding counsel. Keep it practical and focused on a secure future together."
+    };
 
     function setSpeaker(speakerNum) {
         if (isPaused) return;
@@ -117,19 +132,13 @@
         if (type === 'feeling') {
             element.classList.toggle('active-feeling');
             const text = element.innerText;
-            if (selectedFeelings.includes(text)) {
-                selectedFeelings = selectedFeelings.filter(f => f !== text);
-            } else {
-                selectedFeelings.push(text);
-            }
+            if (selectedFeelings.includes(text)) selectedFeelings = selectedFeelings.filter(f => f !== text);
+            else selectedFeelings.push(text);
         } else {
             element.classList.toggle('active-need');
             const text = element.innerText;
-            if (selectedNeeds.includes(text)) {
-                selectedNeeds = selectedNeeds.filter(n => n !== text);
-            } else {
-                selectedNeeds.push(text);
-            }
+            if (selectedNeeds.includes(text)) selectedNeeds = selectedNeeds.filter(n => n !== text);
+            else selectedNeeds.push(text);
         }
     }
 
@@ -166,6 +175,7 @@
         const inputField = document.getElementById('user-input');
         const rawText = inputField.value.trim();
         const apiKey = document.getElementById('api-key-input').value.trim();
+        const mode = document.getElementById('advisor-mode').value;
         
         if (!rawText && selectedFeelings.length === 0 && selectedNeeds.length === 0) return;
 
@@ -176,8 +186,8 @@
         let tagsHtml = '';
         let contextData = '';
         if (selectedFeelings.length > 0 || selectedNeeds.length > 0) {
-            contextData = `[User indicated feelings: ${selectedFeelings.join(', ')} | Needs: ${selectedNeeds.join(', ')}] `;
-            tagsHtml = `<div class="nvc-tags"><strong>Felt:</strong> ${selectedFeelings.join(', ') || 'None selected'} | <strong>Needed:</strong> ${selectedNeeds.join(', ') || 'None selected'}</div>`;
+            contextData = `[Feelings: ${selectedFeelings.join(', ')} | Needs: ${selectedNeeds.join(', ')}] `;
+            tagsHtml = `<div class="nvc-tags"><strong>Felt:</strong> ${selectedFeelings.join(', ') || 'None'} | <strong>Needed:</strong> ${selectedNeeds.join(', ') || 'None'}</div>`;
         }
 
         let fullRawMessage = contextData + rawText;
@@ -189,21 +199,18 @@
                                     ${tagsHtml}
                                     <div class="rephrased-text">⏳ Consulting the expert...</div>`;
             chatLog.appendChild(messageDiv);
-            
-            // Auto-scroll to bottom
             chatLog.scrollTop = chatLog.scrollHeight;
 
-            const rephrasedText = await callGeminiAPI(fullRawMessage, apiKey);
+            const aiResponse = await callGeminiAPI(fullRawMessage, apiKey, mode);
             
             messageDiv.innerHTML = `
                 <div class="speaker-label">Speaker ${currentSpeaker}</div>
                 ${tagsHtml}
-                <div style="color: #a0aec0; font-size: 0.85em; margin-bottom: 5px;">Raw context: "${rawText}"</div>
-                <div class="rephrased-text"><strong>Safe Translation:</strong> "${rephrasedText}"</div>
+                <div style="color: #a0aec0; font-size: 0.85em; margin-bottom: 5px;">Input: "${rawText}"</div>
+                <div class="rephrased-text"><strong>Expert Output:</strong><br/>${aiResponse.replace(/\n/g, '<br/>')}</div>
             `;
             
-            // Add to memory
-            conversationHistory.push(`Speaker ${currentSpeaker}: ${rephrasedText}`);
+            conversationHistory.push(`Speaker ${currentSpeaker} (Mode: ${mode}): ${aiResponse}`);
         } else {
             messageDiv.innerHTML = `<div class="speaker-label">Speaker ${currentSpeaker}</div>
                                     ${tagsHtml}
@@ -216,20 +223,11 @@
         chatLog.scrollTop = chatLog.scrollHeight;
     }
 
-    async function callGeminiAPI(text, apiKey) {
+    async function callGeminiAPI(text, apiKey, mode) {
         const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-        
-        // Build transcript of last 6 messages to give AI context
         const recentHistory = conversationHistory.slice(-6).join('\n');
         
-        const systemPrompt = `You are an expert in Nonviolent Communication (NVC), couples counseling, and practical mediation. 
-        Your task is to translate the user's raw input (which may include pre-selected feelings and needs tags) into a healthy, non-defensive NVC format. 
-        Incorporate the feelings and needs they selected. Speak strictly in the first person ('I feel...'). Do not give advice or scold. 
-        
-        Recent conversation context (for your awareness to ensure flow):
-        ${recentHistory}
-        
-        NEW RAW STATEMENT TO TRANSLATE: `;
+        const systemPrompt = `${PROMPTS[mode]}\n\nRecent conversation context:\n${recentHistory}\n\nNEW INPUT TO PROCESS: `;
         
         const payload = { "contents": [{ "parts": [{"text": systemPrompt + text}] }] };
 
