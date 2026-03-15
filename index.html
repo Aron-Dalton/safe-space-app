@@ -5,86 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Safe Space</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f4f8; /* Calming light blue-grey */
-            color: #333;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .container {
-            background-color: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        h2 { text-align: center; color: #2c3e50; }
-        .controls {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-        button {
-            padding: 10px 15px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background-color 0.3s;
-        }
-        .btn-speaker { background-color: #e2e8f0; color: #4a5568; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f4f8; color: #333; max-width: 700px; margin: 0 auto; padding: 20px; }
+        .container { background-color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #2c3e50; margin-bottom: 5px; }
+        
+        .controls { display: flex; justify-content: space-between; margin-bottom: 15px; }
+        button { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: background-color 0.2s; }
+        .btn-speaker { background-color: #e2e8f0; color: #4a5568; flex: 1; margin: 0 5px; }
         .btn-speaker.active { background-color: #4299e1; color: white; }
         .btn-pause { background-color: #fc8181; color: white; }
-        
-        #pause-screen {
-            display: none;
-            text-align: center;
-            padding: 40px 20px;
-            background-color: #ebf8ff;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        
+        .btn-export { background-color: #a0aec0; color: white; margin-bottom: 15px; width: 100%; }
+
+        /* Feelings and Needs Section */
+        .chip-container { margin-bottom: 15px; padding: 10px; background-color: #f7fafc; border-radius: 8px; border: 1px solid #e2e8f0; }
+        .chip-title { font-size: 0.85em; font-weight: bold; color: #4a5568; margin-bottom: 8px; text-transform: uppercase; }
+        .chip { display: inline-block; padding: 6px 12px; margin: 2px; border-radius: 16px; font-size: 0.85em; background-color: #edf2f7; color: #4a5568; cursor: pointer; border: 1px solid transparent; }
+        .chip.active-feeling { background-color: #fed7d7; border-color: #fc8181; color: #c53030; }
+        .chip.active-need { background-color: #c6f6d5; border-color: #68d391; color: #276749; }
+
         .input-area { margin-bottom: 20px; }
-        textarea {
-            width: 100%;
-            height: 100px;
-            padding: 10px;
-            border: 1px solid #cbd5e0;
-            border-radius: 6px;
-            resize: vertical;
-            box-sizing: border-box;
-            font-family: inherit;
-        }
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        .btn-submit { background-color: #48bb78; color: white; flex-grow: 1; }
-        .btn-rephrase { background-color: #805ad5; color: white; flex-grow: 1; }
+        textarea { width: 100%; height: 80px; padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px; resize: vertical; font-family: inherit; margin-bottom: 10px;}
+        .action-buttons { display: flex; gap: 10px; }
+        .btn-submit { background-color: #48bb78; color: white; flex: 1; }
+        .btn-rephrase { background-color: #805ad5; color: white; flex: 2; }
         
-        .chat-log {
-            border-top: 2px solid #edf2f7;
-            padding-top: 20px;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-        .message {
-            margin-bottom: 15px;
-            padding: 10px;
-            border-radius: 8px;
-            background-color: #f7fafc;
-        }
-        .speaker-label { font-weight: bold; font-size: 0.9em; margin-bottom: 5px; color: #718096; }
-        .rephrased-text { color: #2b6cb0; font-style: italic; margin-top: 5px; }
+        .chat-log { border-top: 2px solid #edf2f7; padding-top: 20px; max-height: 400px; overflow-y: auto; }
+        .message { margin-bottom: 15px; padding: 12px; border-radius: 8px; background-color: #f7fafc; border-left: 4px solid #4299e1; }
+        .msg-spk2 { border-left-color: #ed8936; }
+        .speaker-label { font-weight: bold; font-size: 0.85em; margin-bottom: 5px; color: #718096; }
+        .rephrased-text { color: #2b6cb0; font-style: italic; margin-top: 8px; padding-top: 8px; border-top: 1px dashed #cbd5e0;}
+        .nvc-tags { font-size: 0.8em; color: #718096; margin-bottom: 5px; }
+
+        #pause-screen { display: none; text-align: center; padding: 40px 20px; background-color: #ebf8ff; border-radius: 8px; margin-bottom: 20px; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h2>The Safe Space</h2>
+    <div style="text-align: center; margin-bottom: 15px;">
+        <input type="password" id="api-key-input" placeholder="Paste Gemini API Key here" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; width: 80%;">
+    </div>
     
     <div class="controls">
         <button id="btn-spk1" class="btn-speaker active" onclick="setSpeaker(1)">Speaker 1</button>
@@ -94,62 +55,109 @@
 
     <div id="pause-screen">
         <h3>System Paused</h3>
-        <p>Take a deep breath. Drink some water. Notice 3 things in the room.</p>
-        <p id="timerText">Resuming in 10 seconds...</p>
+        <p>Take a deep breath. Notice your feet on the floor. Let your heart rate settle.</p>
+        <p id="timerText">Resuming in 15 seconds...</p>
     </div>
 
     <div id="active-area" class="input-area">
-        <p id="turn-indicator"><strong>Speaker 1's Turn</strong></p>
-        <textarea id="user-input" placeholder="Type what's on your mind..."></textarea>
+        <p id="turn-indicator" style="text-align:center; color:#2c3e50;"><strong>Speaker 1's Turn</strong></p>
+        
+        <div class="chip-container">
+            <div class="chip-title">I am feeling...</div>
+            <div id="feelings-list">
+                <span class="chip" onclick="toggleChip(this, 'feeling')">Hurt</span>
+                <span class="chip" onclick="toggleChip(this, 'feeling')">Scared</span>
+                <span class="chip" onclick="toggleChip(this, 'feeling')">Overwhelmed</span>
+                <span class="chip" onclick="toggleChip(this, 'feeling')">Angry</span>
+                <span class="chip" onclick="toggleChip(this, 'feeling')">Lonely</span>
+                <span class="chip" onclick="toggleChip(this, 'feeling')">Exhausted</span>
+            </div>
+            <div class="chip-title" style="margin-top: 10px;">Because I need...</div>
+            <div id="needs-list">
+                <span class="chip" onclick="toggleChip(this, 'need')">Respect</span>
+                <span class="chip" onclick="toggleChip(this, 'need')">Safety</span>
+                <span class="chip" onclick="toggleChip(this, 'need')">Partnership</span>
+                <span class="chip" onclick="toggleChip(this, 'need')">To Be Heard</span>
+                <span class="chip" onclick="toggleChip(this, 'need')">Clarity</span>
+                <span class="chip" onclick="toggleChip(this, 'need')">Reassurance</span>
+            </div>
+        </div>
+
+        <textarea id="user-input" placeholder="Type the context or raw thought here..."></textarea>
         
         <div class="action-buttons">
             <button class="btn-submit" onclick="sendMessage('raw')">Send as is</button>
-            <button class="btn-rephrase" onclick="sendMessage('rephrase')">Rephrase so I can hear</button>
+            <button class="btn-rephrase" onclick="sendMessage('rephrase')">Rephrase safely</button>
         </div>
     </div>
 
-    <div class="chat-log" id="chat-log">
-        </div>
+    <button class="btn-export" onclick="exportChat()">Save/Export Conversation Log</button>
+
+    <div class="chat-log" id="chat-log"></div>
 </div>
 
 <script>
     let currentSpeaker = 1;
     let isPaused = false;
-
-    // IMPORTANT: In a real app, do NOT put your API key in the frontend HTML. 
-    // This should eventually be moved to a backend (like Node.js) for security.
-    const GEMINI_API_KEY = 'YOUR_API_KEY_HERE'; 
+    let selectedFeelings = [];
+    let selectedNeeds = [];
+    let conversationHistory = []; // Array to store memory
 
     function setSpeaker(speakerNum) {
         if (isPaused) return;
         currentSpeaker = speakerNum;
-        
         document.getElementById('btn-spk1').classList.remove('active');
         document.getElementById('btn-spk2').classList.remove('active');
         document.getElementById(`btn-spk${speakerNum}`).classList.add('active');
-        
         document.getElementById('turn-indicator').innerHTML = `<strong>Speaker ${speakerNum}'s Turn</strong>`;
+        resetInputs();
+    }
+
+    function toggleChip(element, type) {
+        if (type === 'feeling') {
+            element.classList.toggle('active-feeling');
+            const text = element.innerText;
+            if (selectedFeelings.includes(text)) {
+                selectedFeelings = selectedFeelings.filter(f => f !== text);
+            } else {
+                selectedFeelings.push(text);
+            }
+        } else {
+            element.classList.toggle('active-need');
+            const text = element.innerText;
+            if (selectedNeeds.includes(text)) {
+                selectedNeeds = selectedNeeds.filter(n => n !== text);
+            } else {
+                selectedNeeds.push(text);
+            }
+        }
+    }
+
+    function resetInputs() {
         document.getElementById('user-input').value = '';
+        document.querySelectorAll('.chip').forEach(c => {
+            c.classList.remove('active-feeling');
+            c.classList.remove('active-need');
+        });
+        selectedFeelings = [];
+        selectedNeeds = [];
     }
 
     function triggerPause() {
         if (isPaused) return;
         isPaused = true;
-        
         document.getElementById('active-area').style.display = 'none';
         document.getElementById('pause-screen').style.display = 'block';
         
-        let secondsLeft = 10; // Set to 10 seconds for testing. Change to 1200 for 20 minutes.
+        let secondsLeft = 15; 
         const timerInterval = setInterval(() => {
             secondsLeft--;
             document.getElementById('timerText').innerText = `Resuming in ${secondsLeft} seconds...`;
-            
             if (secondsLeft <= 0) {
                 clearInterval(timerInterval);
                 isPaused = false;
                 document.getElementById('active-area').style.display = 'block';
                 document.getElementById('pause-screen').style.display = 'none';
-                document.getElementById('timerText').innerText = `Resuming...`;
             }
         }, 1000);
     }
@@ -157,50 +165,93 @@
     async function sendMessage(type) {
         const inputField = document.getElementById('user-input');
         const rawText = inputField.value.trim();
+        const apiKey = document.getElementById('api-key-input').value.trim();
         
-        if (!rawText) return;
+        if (!rawText && selectedFeelings.length === 0 && selectedNeeds.length === 0) return;
 
         const chatLog = document.getElementById('chat-log');
         const messageDiv = document.createElement('div');
-        messageDiv.className = 'message';
+        messageDiv.className = currentSpeaker === 1 ? 'message' : 'message msg-spk2';
         
-        let contentHtml = `<div class="speaker-label">Speaker ${currentSpeaker}</div>`;
-        contentHtml += `<div>${rawText}</div>`;
+        let tagsHtml = '';
+        let contextData = '';
+        if (selectedFeelings.length > 0 || selectedNeeds.length > 0) {
+            contextData = `[User indicated feelings: ${selectedFeelings.join(', ')} | Needs: ${selectedNeeds.join(', ')}] `;
+            tagsHtml = `<div class="nvc-tags"><strong>Felt:</strong> ${selectedFeelings.join(', ') || 'None selected'} | <strong>Needed:</strong> ${selectedNeeds.join(', ') || 'None selected'}</div>`;
+        }
 
-        // If rephrase is clicked, we call the Gemini API
+        let fullRawMessage = contextData + rawText;
+
         if (type === 'rephrase') {
-            contentHtml += `<div class="rephrased-text">⏳ Translating to healthy communication...</div>`;
-            messageDiv.innerHTML = contentHtml;
-            chatLog.prepend(messageDiv);
-            inputField.value = '';
+            if (!apiKey) { alert("Please paste your Gemini API key first."); return; }
 
-            // Simulate the Gemini API call for the prototype
-            const rephrasedText = await callGeminiAPI(rawText);
+            messageDiv.innerHTML = `<div class="speaker-label">Speaker ${currentSpeaker}</div>
+                                    ${tagsHtml}
+                                    <div class="rephrased-text">⏳ Consulting the expert...</div>`;
+            chatLog.appendChild(messageDiv);
             
-            // Update the message with the API result
+            // Auto-scroll to bottom
+            chatLog.scrollTop = chatLog.scrollHeight;
+
+            const rephrasedText = await callGeminiAPI(fullRawMessage, apiKey);
+            
             messageDiv.innerHTML = `
                 <div class="speaker-label">Speaker ${currentSpeaker}</div>
-                <div style="text-decoration: line-through; color: #a0aec0; font-size: 0.85em;">${rawText}</div>
-                <div class="rephrased-text"><strong>Translated:</strong> "${rephrasedText}"</div>
+                ${tagsHtml}
+                <div style="color: #a0aec0; font-size: 0.85em; margin-bottom: 5px;">Raw context: "${rawText}"</div>
+                <div class="rephrased-text"><strong>Safe Translation:</strong> "${rephrasedText}"</div>
             `;
+            
+            // Add to memory
+            conversationHistory.push(`Speaker ${currentSpeaker}: ${rephrasedText}`);
         } else {
-            messageDiv.innerHTML = contentHtml;
-            chatLog.prepend(messageDiv);
-            inputField.value = '';
+            messageDiv.innerHTML = `<div class="speaker-label">Speaker ${currentSpeaker}</div>
+                                    ${tagsHtml}
+                                    <div>${rawText}</div>`;
+            chatLog.appendChild(messageDiv);
+            conversationHistory.push(`Speaker ${currentSpeaker}: ${fullRawMessage}`);
+        }
+        
+        resetInputs();
+        chatLog.scrollTop = chatLog.scrollHeight;
+    }
+
+    async function callGeminiAPI(text, apiKey) {
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+        
+        // Build transcript of last 6 messages to give AI context
+        const recentHistory = conversationHistory.slice(-6).join('\n');
+        
+        const systemPrompt = `You are an expert in Nonviolent Communication (NVC), couples counseling, and practical mediation. 
+        Your task is to translate the user's raw input (which may include pre-selected feelings and needs tags) into a healthy, non-defensive NVC format. 
+        Incorporate the feelings and needs they selected. Speak strictly in the first person ('I feel...'). Do not give advice or scold. 
+        
+        Recent conversation context (for your awareness to ensure flow):
+        ${recentHistory}
+        
+        NEW RAW STATEMENT TO TRANSLATE: `;
+        
+        const payload = { "contents": [{ "parts": [{"text": systemPrompt + text}] }] };
+
+        try {
+            const response = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            const data = await response.json();
+            if (data.error) return `API Error: ${data.error.message}`;
+            return data.candidates[0].content.parts[0].text;
+        } catch (error) {
+            return "Connection error. Check your internet and API key.";
         }
     }
 
-    // This is where you connect to Gemini
-    async function callGeminiAPI(text) {
-        // NOTE: To make this work live, you would use fetch() here to call the 
-        // Google Gemini REST API endpoints using your GEMINI_API_KEY.
-        
-        // For right now, I am acting as the mock-API to show you how it looks:
-        return new Promise(resolve => {
-            setTimeout(() => {
-                resolve("When I hear this, I feel overwhelmed because my need for mutual understanding isn't being met. Could we discuss this calmly?");
-            }, 1500); // 1.5 second delay to simulate API processing
-        });
+    function exportChat() {
+        if (conversationHistory.length === 0) { alert("No conversation to save yet."); return; }
+        const element = document.createElement('a');
+        const file = new Blob([conversationHistory.join('\n\n')], {type: 'text/plain'});
+        element.href = URL.createObjectURL(file);
+        element.download = "SafeSpace_Conversation_Log.txt";
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
     }
 </script>
 
